@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Loja de Carro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Loja de Carro</h1>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <h2>Entrar</h2>
+    <form id="formLogin">
+        <label for="loginEmail">E-mail:</label>
+        <input type="email" id="loginEmail" required>
+
+        <label for="loginSenha">Senha:</label>
+        <input type="password" id="loginSenha" required>
+
+        <br>
+        <button type="submit">Entrar</button>
+    </form>
+
+    <h2>Criar conta</h2>
+    <form id="formCadastro">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" required>
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" required>
+
+        <label for="senha">Senha (mínimo 6 caracteres):</label>
+        <input type="password" id="senha" required>
+
+        <br>
+        <button type="submit">Criar conta</button>
+    </form>
+
+    <script>
+        function mostrarMensagem(texto, erro) {
+            const div = document.getElementById("mensagem");
+            div.textContent = texto;
+            div.className = "mensagem " + (erro ? "erro" : "sucesso");
+        }
+
+        async function lerErro(resposta) {
+            try {
+                const corpo = await resposta.json();
+                return corpo.erro || "Erro " + resposta.status;
+            } catch (e) {
+                return "Erro " + resposta.status;
+            }
+        }
+
+        async function enviar(url, dados) {
+            return fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+            });
+        }
+
+        document.getElementById("formLogin").addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+            const resposta = await enviar("/usuario/login", {
+                email: document.getElementById("loginEmail").value,
+                senha: document.getElementById("loginSenha").value
+            });
+            if (resposta.ok) {
+                window.location.href = "index.html";
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        });
+
+        document.getElementById("formCadastro").addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+            const resposta = await enviar("/usuario/salvar", {
+                nome: document.getElementById("nome").value,
+                email: document.getElementById("email").value,
+                senha: document.getElementById("senha").value
+            });
+            if (resposta.ok) {
+                document.getElementById("loginEmail").value = document.getElementById("email").value;
+                document.getElementById("formCadastro").reset();
+                mostrarMensagem("Conta criada. Agora faça o login.", false);
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        });
+    </script>
+</body>
+</html>

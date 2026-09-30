@@ -17,10 +17,16 @@ public class LogService {
     @Autowired
     private LogRepository logRepository;
 
-    // Registra a ação no arquivo de log e no banco de dados
+    @Autowired
+    private SessaoService sessaoService;
+
+    // Registra a ação, e quem a fez, no arquivo de log e no banco de dados
     public void registrar(String acao, String entidade, String descricao) {
-        logger.info("[{}] {} - {}", acao, entidade, descricao);
-        logRepository.save(new LogSistema(acao, entidade, descricao));
+        String usuario = sessaoService.usuarioLogado()
+                .map(u -> u.getNome() + " (" + u.getEmail() + ")")
+                .orElse("anônimo");
+        logger.info("[{}] {} - {} - por {}", acao, entidade, descricao, usuario);
+        logRepository.save(new LogSistema(acao, entidade, descricao, usuario));
     }
 
     public List<LogSistema> findAll() {

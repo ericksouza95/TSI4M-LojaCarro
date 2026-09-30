@@ -16,15 +16,18 @@ public class LogSistema {
     private String entidade;
     @Column(length = 1000)
     private String descricao;
+    // Guardado como texto para o histórico continuar legível mesmo se o usuário for excluído
+    private String usuario;
 
     public LogSistema() {
     }
 
-    public LogSistema(String acao, String entidade, String descricao) {
+    public LogSistema(String acao, String entidade, String descricao, String usuario) {
         this.dataHora = LocalDateTime.now();
         this.acao = acao;
         this.entidade = entidade;
         this.descricao = descricao;
+        this.usuario = usuario;
     }
 
     public Long getId() {
@@ -45,5 +48,9 @@ public class LogSistema {
 
     public String getDescricao() {
         return descricao;
+    }
+
+    public String getUsuario() {
+        return usuario;
     }
 }

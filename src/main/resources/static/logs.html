@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <title>Logs</title>
     <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Início</a>
-        <a href="usuarios.html">Usuários</a>
-        <a href="logs.html">Logs</a>
-    </nav>
+    <nav id="menu"></nav>
 
     <h1>Logs do Sistema</h1>
 
@@ -22,6 +19,7 @@
             <tr>
                 <th>ID</th>
                 <th>Data/Hora</th>
+                <th>Usuário</th>
                 <th>Ação</th>
                 <th>Entidade</th>
                 <th>Descrição</th>
@@ -32,24 +30,17 @@
 
     <script>
         async function listarLogs() {
-            const resposta = await fetch("/log");
+            const resposta = await api("/log");
             const logs = await resposta.json();
             const tabela = document.getElementById("tabelaLogs");
             tabela.innerHTML = "";
 
             logs.forEach(function (log) {
-                const linha = document.createElement("tr");
-                const dataHora = new Date(log.dataHora).toLocaleString("pt-BR");
-                [log.id, dataHora, log.acao, log.entidade, log.descricao].forEach(function (valor) {
-                    const celula = document.createElement("td");
-                    celula.textContent = valor;
-                    linha.appendChild(celula);
-                });
-                tabela.appendChild(linha);
+                adicionarLinha(tabela, [log.id, formatarData(log.dataHora), log.usuario, log.acao, log.entidade, log.descricao]);
             });
         }
 
-        listarLogs();
+        montarMenu().then(listarLogs);
     </script>
 </body>
 </html>

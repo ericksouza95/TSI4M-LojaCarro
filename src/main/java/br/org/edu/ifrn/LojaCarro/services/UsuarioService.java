@@ -2,6 +2,7 @@ package br.org.edu.ifrn.LojaCarro.services;
 
 import br.org.edu.ifrn.LojaCarro.UsuarioException;
 import br.org.edu.ifrn.LojaCarro.model.Usuario;
+import br.org.edu.ifrn.LojaCarro.repository.CarroRepository;
 import br.org.edu.ifrn.LojaCarro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,31 @@ public class UsuarioService {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private SessaoService sessaoService;
+
+    @Autowired
+    private CarroRepository carroRepository;
+
+    public Usuario login(String email, String senha) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .filter(u -> senha != null && u.getSenha().equals(criptografarSenha(senha)))
+                .orElseThrow(() -> new UsuarioException("E-mail ou senha inválidos."));
+        sessaoService.entrar(usuario);
+        logService.registrar("LOGIN", ENTIDADE, "Login realizado: " + usuario.getEmail());
+        return usuario;
+    }
+
+    public void logout() {
+        sessaoService.usuarioLogado().ifPresent(u ->
+                logService.registrar("LOGOUT", ENTIDADE, "Logout realizado: " + u.getEmail()));
+        sessaoService.sair();
+    }
+
+    public Optional<Usuario> usuarioLogado() {
+        return sessaoService.usuarioLogado();
+    }
 
     public Usuario save(Usuario u) {
         validarNome(u.getNome());
@@ -62,6 +88,12 @@ public class UsuarioService {
         validarId(id);
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioException("Usuário com ID " + id + " não encontrado para exclusão."));
+        if (sessaoService.usuarioLogado().map(logado -> logado.getId().equals(id)).orElse(false)) {
+            throw new UsuarioException("Não é possível excluir o usuário que está logado.");
+        }
+        if (carroRepository.existsByCadastradoPor(usuario)) {
+            throw new UsuarioException("O usuário " + usuario.getEmail() + " possui carros cadastrados e não pode ser excluído.");
+        }
         usuarioRepository.delete(usuario);
         logService.registrar("EXCLUIR", ENTIDADE, "Usuário excluído: ID " + id + ", e-mail " + usuario.getEmail());
     }

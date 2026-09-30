@@ -21,9 +21,13 @@ public class CarroService {
     @Autowired
     private LogService logService;
 
+    @Autowired
+    private SessaoService sessaoService;
+
     public Carro save(Carro c) {
         validarModelo(c.getModelo());  // Valida o modelo antes de salvar
         validarPreco(c.getPreco());
+        c.setCadastradoPor(sessaoService.usuarioLogado().orElse(null));
         Carro salvo = carroRepository.save(c);
         logService.registrar("CRIAR", ENTIDADE, "Carro criado: ID " + salvo.getId() + ", modelo " + salvo.getModelo());
         return salvo;
@@ -85,11 +89,11 @@ public class CarroService {
         if (c.getId() == null) {
             throw new CarroException("O ID do carro para atualização não pode ser nulo.");
         }
-        if (!carroRepository.existsById(c.getId())) {
-            throw new CarroException("Carro com ID " + c.getId() + " não encontrado para atualização.");
-        }
+        Carro existente = carroRepository.findById(c.getId())
+                .orElseThrow(() -> new CarroException("Carro com ID " + c.getId() + " não encontrado para atualização."));
         validarModelo(c.getModelo());  // Valida o modelo antes de atualizar
         validarPreco(c.getPreco());
+        c.setCadastradoPor(existente.getCadastradoPor());  // Mantém quem cadastrou o carro
         Carro atualizado = carroRepository.save(c);  // Retorna o carro salvo para feedback
         logService.registrar("ATUALIZAR", ENTIDADE, "Carro atualizado: ID " + atualizado.getId() + ", modelo " + atualizado.getModelo());
         return atualizado;

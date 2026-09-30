@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <title>Usuários</title>
     <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Início</a>
-        <a href="usuarios.html">Usuários</a>
-        <a href="logs.html">Logs</a>
-    </nav>
+    <nav id="menu"></nav>
 
     <h1>Cadastro de Usuários</h1>
 
@@ -49,54 +46,17 @@
     </table>
 
     <script>
-        const API = "/usuario";
-
-        function mostrarMensagem(texto, erro) {
-            const div = document.getElementById("mensagem");
-            div.textContent = texto;
-            div.className = "mensagem " + (erro ? "erro" : "sucesso");
-        }
-
-        async function lerErro(resposta) {
-            try {
-                const corpo = await resposta.json();
-                return corpo.erro || "Erro " + resposta.status;
-            } catch (e) {
-                return "Erro " + resposta.status;
-            }
-        }
-
-        function formatarData(data) {
-            return data ? new Date(data).toLocaleString("pt-BR") : "";
-        }
-
         async function listarUsuarios() {
-            const resposta = await fetch(API);
+            const resposta = await api("/usuario/listarUsuarios");
             const usuarios = await resposta.json();
             const tabela = document.getElementById("tabelaUsuarios");
             tabela.innerHTML = "";
 
             usuarios.forEach(function (u) {
-                const linha = document.createElement("tr");
-                [u.id, u.nome, u.email, formatarData(u.dataCadastro)].forEach(function (valor) {
-                    const celula = document.createElement("td");
-                    celula.textContent = valor;
-                    linha.appendChild(celula);
-                });
-
-                const acoes = document.createElement("td");
-                const btnEditar = document.createElement("button");
-                btnEditar.textContent = "Editar";
-                btnEditar.onclick = function () { editarUsuario(u); };
-                const btnExcluir = document.createElement("button");
-                btnExcluir.textContent = "Excluir";
-                btnExcluir.onclick = function () { excluirUsuario(u.id); };
-                acoes.appendChild(btnEditar);
-                acoes.appendChild(document.createTextNode(" "));
-                acoes.appendChild(btnExcluir);
-                linha.appendChild(acoes);
-
-                tabela.appendChild(linha);
+                const linha = adicionarLinha(tabela, [u.id, u.nome, u.email, formatarData(u.dataCadastro)]);
+                adicionarAcoes(linha,
+                    function () { editarUsuario(u); },
+                    function () { excluirUsuario(u.id); });
             });
         }
 
@@ -109,16 +69,15 @@
                 senha: document.getElementById("senha").value
             };
 
-            const resposta = await fetch(id ? API + "/" + id : API, {
-                method: id ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(usuario)
-            });
+            const resposta = id
+                ? await enviarJson("/usuario/" + id, "PUT", usuario)
+                : await enviarJson("/usuario/salvar", "POST", usuario);
 
             if (resposta.ok) {
                 mostrarMensagem(id ? "Usuário atualizado com sucesso." : "Usuário cadastrado com sucesso.", false);
                 limparFormulario();
                 listarUsuarios();
+                montarMenu();  // Atualiza o nome no menu caso o usuário logado tenha sido editado
             } else {
                 mostrarMensagem(await lerErro(resposta), true);
             }
@@ -137,7 +96,7 @@
             if (!confirm("Deseja realmente excluir o usuário " + id + "?")) {
                 return;
             }
-            const resposta = await fetch(API + "/" + id, { method: "DELETE" });
+            const resposta = await api("/usuario/" + id, { method: "DELETE" });
             if (resposta.ok) {
                 mostrarMensagem("Usuário excluído com sucesso.", false);
                 listarUsuarios();
@@ -154,7 +113,7 @@
         }
 
         document.getElementById("formUsuario").addEventListener("submit", salvarUsuario);
-        listarUsuarios();
+        montarMenu().then(listarUsuarios);
     </script>
 </body>
 </html>

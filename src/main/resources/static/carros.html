@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Carros</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
+</head>
+<body>
+    <nav id="menu"></nav>
+
+    <h1>Cadastro de Carros</h1>
+
+    <form id="formCarro">
+        <input type="hidden" id="id">
+
+        <label for="modelo">Modelo (menos de 5 caracteres):</label>
+        <input type="text" id="modelo" maxlength="4" required>
+
+        <label for="ano">Ano:</label>
+        <input type="number" id="ano" required>
+
+        <label for="preco">Preço:</label>
+        <input type="number" id="preco" step="0.01" min="0" required>
+
+        <br>
+        <button type="submit" id="btnSalvar">Cadastrar</button>
+        <button type="button" onclick="limparFormulario()">Cancelar</button>
+    </form>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <h2>Carros cadastrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Preço</th>
+                <th>Cadastrado por</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaCarros"></tbody>
+    </table>
+
+    <script>
+        async function listarCarros() {
+            const resposta = await api("/carro/listarCarros");
+            const carros = await resposta.json();
+            const tabela = document.getElementById("tabelaCarros");
+            tabela.innerHTML = "";
+
+            carros.forEach(function (c) {
+                const cadastradoPor = c.cadastradoPor ? c.cadastradoPor.nome : "";
+                const preco = c.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                const linha = adicionarLinha(tabela, [c.id, c.modelo, c.ano, preco, cadastradoPor]);
+                adicionarAcoes(linha,
+                    function () { editarCarro(c); },
+                    function () { excluirCarro(c.id); });
+            });
+        }
+
+        async function salvarCarro(evento) {
+            evento.preventDefault();
+            const id = document.getElementById("id").value;
+            const carro = {
+                modelo: document.getElementById("modelo").value,
+                ano: Number(document.getElementById("ano").value),
+                preco: Number(document.getElementById("preco").value)
+            };
+
+            const resposta = id
+                ? await enviarJson("/carro/" + id, "PUT", carro)
+                : await enviarJson("/carro/salvar", "POST", carro);
+
+            if (resposta.ok) {
+                mostrarMensagem(id ? "Carro atualizado com sucesso." : "Carro cadastrado com sucesso.", false);
+                limparFormulario();
+                listarCarros();
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        }
+
+        function editarCarro(c) {
+            document.getElementById("id").value = c.id;
+            document.getElementById("modelo").value = c.modelo;
+            document.getElementById("ano").value = c.ano;
+            document.getElementById("preco").value = c.preco;
+            document.getElementById("btnSalvar").textContent = "Atualizar";
+        }
+
+        async function excluirCarro(id) {
+            if (!confirm("Deseja realmente excluir o carro " + id + "?")) {
+                return;
+            }
+            const resposta = await api("/carro/" + id, { method: "DELETE" });
+            if (resposta.ok) {
+                mostrarMensagem("Carro excluído com sucesso.", false);
+                listarCarros();
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById("formCarro").reset();
+            document.getElementById("id").value = "";
+            document.getElementById("btnSalvar").textContent = "Cadastrar";
+        }
+
+        document.getElementById("formCarro").addEventListener("submit", salvarCarro);
+        montarMenu().then(listarCarros);
+    </script>
+</body>
+</html>

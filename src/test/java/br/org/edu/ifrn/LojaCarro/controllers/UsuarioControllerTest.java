@@ -1,8 +1,8 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
+import br.org.edu.ifrn.LojaCarro.repository.CarroRepository;
 import br.org.edu.ifrn.LojaCarro.repository.LogRepository;
 import br.org.edu.ifrn.LojaCarro.repository.UsuarioRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
@@ -24,6 +25,9 @@ class UsuarioControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private CarroRepository carroRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -34,50 +38,91 @@ class UsuarioControllerTest {
 
     @BeforeEach
     void limparBanco() {
+        carroRepository.deleteAll();
         usuarioRepository.deleteAll();
         logRepository.deleteAll();
     }
 
-    private long criarUsuario(String nome, String email, String senha) throws Exception {
-        String json = "{\"nome\":\"" + nome + "\",\"email\":\"" + email + "\",\"senha\":\"" + senha + "\"}";
-        String resposta = mockMvc.perform(post("/usuario").contentType(MediaType.APPLICATION_JSON).content(json))
+    private long criarUsuario(String nome, String email) throws Exception {
+        String json = "{\"nome\":\"" + nome + "\",\"email\":\"" + email + "\",\"senha\":\"123456\"}";
+        String resposta = mockMvc.perform(post("/usuario/salvar").contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        JsonNode node = objectMapper.readTree(resposta);
-        return node.get("id").asLong();
+        return objectMapper.readTree(resposta).get("id").asLong();
+    }
+
+    private MockHttpSession logar(String email) throws Exception {
+        MockHttpSession sessao = new MockHttpSession();
+        mockMvc.perform(post("/usuario/login").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"senha\":\"123456\"}"))
+                .andExpect(status().isOk());
+        return sessao;
     }
 
     @Test
     void crudCompletoDeUsuario() throws Exception {
-        long id = criarUsuario("Maria", "maria@email.com", "123456");
+        criarUsuario("Admin", "admin@email.com");
+        MockHttpSession sessao = logar("admin@email.com");
+        long id = criarUsuario("Maria", "maria@email.com");
 
         // A senha nunca deve ser devolvida
-        mockMvc.perform(get("/usuario/" + id))
+        mockMvc.perform(get("/usuario/" + id).session(sessao))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Maria"))
                 .andExpect(jsonPath("$.senha").doesNotExist());
 
-        mockMvc.perform(put("/usuario/" + id).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/usuario/" + id).session(sessao).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Maria Silva\",\"email\":\"maria@email.com\",\"senha\":\"\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Maria Silva"));
 
-        mockMvc.perform(get("/usuario"))
+        mockMvc.perform(get("/usuario/listarUsuarios").session(sessao))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(2)));
 
-        mockMvc.perform(delete("/usuario/" + id))
+        mockMvc.perform(delete("/usuario/" + id).session(sessao))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/usuario/" + id))
+        mockMvc.perform(get("/usuario/" + id).session(sessao))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void naoPermiteEmailDuplicado() throws Exception {
-        criarUsuario("Joao", "joao@email.com", "123456");
+    void exigeLoginParaAcessarOSistema() throws Exception {
+        mockMvc.perform(get("/usuario/listarUsuarios")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/carro/listarCarros")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/log")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/usuario/logado")).andExpect(status().isUnauthorized());
+    }
 
-        mockMvc.perform(post("/usuario").contentType(MediaType.APPLICATION_JSON)
+    @Test
+    void loginComSenhaErradaFalha() throws Exception {
+        criarUsuario("Joao", "joao@email.com");
+
+        mockMvc.perform(post("/usuario/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"joao@email.com\",\"senha\":\"errada\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("E-mail ou senha inválidos."));
+    }
+
+    @Test
+    void logoutEncerraASessao() throws Exception {
+        criarUsuario("Joao", "joao@email.com");
+        MockHttpSession sessao = logar("joao@email.com");
+
+        mockMvc.perform(get("/usuario/logado").session(sessao))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("joao@email.com"));
+
+        mockMvc.perform(post("/usuario/logout").session(sessao)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/usuario/listarUsuarios").session(sessao)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void naoPermiteEmailDuplicado() throws Exception {
+        criarUsuario("Joao", "joao@email.com");
+
+        mockMvc.perform(post("/usuario/salvar").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Outro\",\"email\":\"joao@email.com\",\"senha\":\"123456\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.erro").value(containsString("joao@email.com")));
@@ -85,24 +130,18 @@ class UsuarioControllerTest {
 
     @Test
     void naoPermiteSenhaCurta() throws Exception {
-        mockMvc.perform(post("/usuario").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/usuario/salvar").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Ana\",\"email\":\"ana@email.com\",\"senha\":\"123\"}"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void registraLogsDasAcoes() throws Exception {
-        long id = criarUsuario("Pedro", "pedro@email.com", "123456");
-        mockMvc.perform(delete("/usuario/" + id)).andExpect(status().isNoContent());
-        mockMvc.perform(delete("/usuario/" + id)).andExpect(status().isBadRequest());
+    void naoPermiteExcluirOUsuarioLogado() throws Exception {
+        long id = criarUsuario("Joao", "joao@email.com");
+        MockHttpSession sessao = logar("joao@email.com");
 
-        // Logs vêm do mais recente para o mais antigo
-        mockMvc.perform(get("/log"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].acao").value("ERRO"))
-                .andExpect(jsonPath("$[1].acao").value("EXCLUIR"))
-                .andExpect(jsonPath("$[2].acao").value("CRIAR"))
-                .andExpect(jsonPath("$[2].entidade").value("Usuario"));
+        mockMvc.perform(delete("/usuario/" + id).session(sessao))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Não é possível excluir o usuário que está logado."));
     }
 }

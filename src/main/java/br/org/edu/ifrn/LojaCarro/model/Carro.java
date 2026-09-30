@@ -12,6 +12,11 @@ public class Carro {
     int ano;
     double preco;
 
+    // Usuário que cadastrou o carro
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario cadastradoPor;
+
     // No-arg constructor necessário para desserialização (Jackson)
     public Carro() {
     }
@@ -58,5 +63,13 @@ public class Carro {
 
     public void setPreco(double preco) {
         this.preco = preco;
+    }
+
+    public Usuario getCadastradoPor() {
+        return cadastradoPor;
+    }
+
+    public void setCadastradoPor(Usuario cadastradoPor) {
+        this.cadastradoPor = cadastradoPor;
     }
 }
