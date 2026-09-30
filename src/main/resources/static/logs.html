@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Logs</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Início</a>
+        <a href="usuarios.html">Usuários</a>
+        <a href="logs.html">Logs</a>
+    </nav>
+
+    <h1>Logs do Sistema</h1>
+
+    <button type="button" onclick="listarLogs()">Atualizar</button>
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data/Hora</th>
+                <th>Ação</th>
+                <th>Entidade</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaLogs"></tbody>
+    </table>
+
+    <script>
+        async function listarLogs() {
+            const resposta = await fetch("/log");
+            const logs = await resposta.json();
+            const tabela = document.getElementById("tabelaLogs");
+            tabela.innerHTML = "";
+
+            logs.forEach(function (log) {
+                const linha = document.createElement("tr");
+                const dataHora = new Date(log.dataHora).toLocaleString("pt-BR");
+                [log.id, dataHora, log.acao, log.entidade, log.descricao].forEach(function (valor) {
+                    const celula = document.createElement("td");
+                    celula.textContent = valor;
+                    linha.appendChild(celula);
+                });
+                tabela.appendChild(linha);
+            });
+        }
+
+        listarLogs();
+    </script>
+</body>
+</html>

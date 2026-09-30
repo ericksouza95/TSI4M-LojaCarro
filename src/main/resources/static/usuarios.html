@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Início</a>
+        <a href="usuarios.html">Usuários</a>
+        <a href="logs.html">Logs</a>
+    </nav>
+
+    <h1>Cadastro de Usuários</h1>
+
+    <form id="formUsuario">
+        <input type="hidden" id="id">
+
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" required>
+
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" required>
+
+        <label for="senha">Senha (mínimo 6 caracteres):</label>
+        <input type="password" id="senha">
+        <small id="dicaSenha" hidden>Deixe em branco para manter a senha atual.</small>
+
+        <br>
+        <button type="submit" id="btnSalvar">Cadastrar</button>
+        <button type="button" onclick="limparFormulario()">Cancelar</button>
+    </form>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <h2>Usuários cadastrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Data de cadastro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaUsuarios"></tbody>
+    </table>
+
+    <script>
+        const API = "/usuario";
+
+        function mostrarMensagem(texto, erro) {
+            const div = document.getElementById("mensagem");
+            div.textContent = texto;
+            div.className = "mensagem " + (erro ? "erro" : "sucesso");
+        }
+
+        async function lerErro(resposta) {
+            try {
+                const corpo = await resposta.json();
+                return corpo.erro || "Erro " + resposta.status;
+            } catch (e) {
+                return "Erro " + resposta.status;
+            }
+        }
+
+        function formatarData(data) {
+            return data ? new Date(data).toLocaleString("pt-BR") : "";
+        }
+
+        async function listarUsuarios() {
+            const resposta = await fetch(API);
+            const usuarios = await resposta.json();
+            const tabela = document.getElementById("tabelaUsuarios");
+            tabela.innerHTML = "";
+
+            usuarios.forEach(function (u) {
+                const linha = document.createElement("tr");
+                [u.id, u.nome, u.email, formatarData(u.dataCadastro)].forEach(function (valor) {
+                    const celula = document.createElement("td");
+                    celula.textContent = valor;
+                    linha.appendChild(celula);
+                });
+
+                const acoes = document.createElement("td");
+                const btnEditar = document.createElement("button");
+                btnEditar.textContent = "Editar";
+                btnEditar.onclick = function () { editarUsuario(u); };
+                const btnExcluir = document.createElement("button");
+                btnExcluir.textContent = "Excluir";
+                btnExcluir.onclick = function () { excluirUsuario(u.id); };
+                acoes.appendChild(btnEditar);
+                acoes.appendChild(document.createTextNode(" "));
+                acoes.appendChild(btnExcluir);
+                linha.appendChild(acoes);
+
+                tabela.appendChild(linha);
+            });
+        }
+
+        async function salvarUsuario(evento) {
+            evento.preventDefault();
+            const id = document.getElementById("id").value;
+            const usuario = {
+                nome: document.getElementById("nome").value,
+                email: document.getElementById("email").value,
+                senha: document.getElementById("senha").value
+            };
+
+            const resposta = await fetch(id ? API + "/" + id : API, {
+                method: id ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(usuario)
+            });
+
+            if (resposta.ok) {
+                mostrarMensagem(id ? "Usuário atualizado com sucesso." : "Usuário cadastrado com sucesso.", false);
+                limparFormulario();
+                listarUsuarios();
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        }
+
+        function editarUsuario(u) {
+            document.getElementById("id").value = u.id;
+            document.getElementById("nome").value = u.nome;
+            document.getElementById("email").value = u.email;
+            document.getElementById("senha").value = "";
+            document.getElementById("dicaSenha").hidden = false;
+            document.getElementById("btnSalvar").textContent = "Atualizar";
+        }
+
+        async function excluirUsuario(id) {
+            if (!confirm("Deseja realmente excluir o usuário " + id + "?")) {
+                return;
+            }
+            const resposta = await fetch(API + "/" + id, { method: "DELETE" });
+            if (resposta.ok) {
+                mostrarMensagem("Usuário excluído com sucesso.", false);
+                listarUsuarios();
+            } else {
+                mostrarMensagem(await lerErro(resposta), true);
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById("formUsuario").reset();
+            document.getElementById("id").value = "";
+            document.getElementById("dicaSenha").hidden = true;
+            document.getElementById("btnSalvar").textContent = "Cadastrar";
+        }
+
+        document.getElementById("formUsuario").addEventListener("submit", salvarUsuario);
+        listarUsuarios();
+    </script>
+</body>
+</html>

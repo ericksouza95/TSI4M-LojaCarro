@@ -1,0 +1,57 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+nav a {
+    margin-right: 15px;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 8px;
+}
+
+input {
+    width: 300px;
+    padding: 4px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 4px 10px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid #000000;
+    padding: 5px;
+    text-align: left;
+}
+
+th {
+    background-color: #dddddd;
+}
+
+.mensagem {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.erro {
+    color: #cc0000;
+}
+
+.sucesso {
+    color: #008000;
+}
