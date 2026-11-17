@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [ "dev", "trabalho-final" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  api:
+    name: API (Spring Boot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Testes e cobertura (JaCoCo)
+        run: |
+          chmod +x mvnw
+          ./mvnw -B test
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-relatorios
+          path: |
+            target/surefire-reports
+            target/site/jacoco
+
+  logs-service:
+    name: Microserviço de logs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Testes e cobertura (JaCoCo)
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -f logs-service/pom.xml test
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-service-relatorios
+          path: |
+            logs-service/target/surefire-reports
+            logs-service/target/site/jacoco
+
+  frontend:
+    name: Frontend (Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Testes e cobertura (Vitest)
+        run: npm run test:cobertura
+      - name: Build de produção
+        run: npm run build
+      - name: Publicar relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-cobertura
+          path: frontend/coverage
