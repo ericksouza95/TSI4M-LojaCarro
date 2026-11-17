@@ -1,9 +1,9 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
-import br.org.edu.ifrn.LojaCarro.model.LogSistema;
+import br.org.edu.ifrn.LojaCarro.dto.LogResponse;
 import br.org.edu.ifrn.LojaCarro.services.LogService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,15 +11,19 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/log")
+@RequestMapping("/api/logs")
+@Tag(name = "Logs", description = "Auditoria das operações")
 public class LogController {
 
-    @Autowired
-    private LogService logService;
+    private final LogService logService;
 
-    // Listar todos os logs (mais recentes primeiro)
+    public LogController(LogService logService) {
+        this.logService = logService;
+    }
+
     @GetMapping
-    public ResponseEntity<List<LogSistema>> listarLogs() {
-        return ResponseEntity.ok(logService.findAll());
+    @Operation(summary = "Lista os logs (mais recentes primeiro)")
+    public List<LogResponse> listar() {
+        return logService.listar();
     }
 }

@@ -1,75 +1,58 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
-import br.org.edu.ifrn.LojaCarro.model.Usuario;
+import br.org.edu.ifrn.LojaCarro.dto.UsuarioAtualizacaoRequest;
+import br.org.edu.ifrn.LojaCarro.dto.UsuarioCadastroRequest;
+import br.org.edu.ifrn.LojaCarro.dto.UsuarioResponse;
 import br.org.edu.ifrn.LojaCarro.services.UsuarioService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/usuario")
+@RequestMapping("/api/usuarios")
+@Tag(name = "Usuários", description = "Cadastro e gerenciamento de usuários")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
 
-    // Salvar usuário (criar conta, não exige login)
-    @PostMapping("salvar")
-    public ResponseEntity<Usuario> salvarUsuario(@RequestBody Usuario u) {
-        Usuario savedUsuario = usuarioService.save(u);
-        return ResponseEntity.ok(savedUsuario);
+    public UsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
     }
 
-    // Atualizar usuário (por ID)
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario u) {
-        u.setId(id);  // Define o ID no objeto
-        Usuario updatedUsuario = usuarioService.update(u);
-        return ResponseEntity.ok(updatedUsuario);
+    @PostMapping
+    @Operation(summary = "Cria uma conta de cliente (público)")
+    public ResponseEntity<UsuarioResponse> cadastrar(@Valid @RequestBody UsuarioCadastroRequest dados) {
+        UsuarioResponse criado = usuarioService.cadastrarCliente(dados);
+        return ResponseEntity.created(URI.create("/api/usuarios/" + criado.id())).body(criado);
     }
 
-    // Deletar usuário (por ID)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
-        usuarioService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping
+    @Operation(summary = "Lista os usuários")
+    public List<UsuarioResponse> listar() {
+        return usuarioService.listar();
     }
 
-    // Pesquisar usuário por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> pesquisarUsuarioPorId(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioService.findById(id);
-        return usuario.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    @Operation(summary = "Busca um usuário pelo ID")
+    public UsuarioResponse buscarPorId(@PathVariable Long id) {
+        return usuarioService.buscarPorId(id);
     }
 
-    // Pesquisar todos os usuários
-    @GetMapping("/listarUsuarios")
-    public ResponseEntity<List<Usuario>> pesquisarTodosUsuarios() {
-        List<Usuario> usuarios = usuarioService.findAll();
-        return ResponseEntity.ok(usuarios);
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualiza os dados de um usuário")
+    public UsuarioResponse atualizar(@PathVariable Long id, @Valid @RequestBody UsuarioAtualizacaoRequest dados) {
+        return usuarioService.atualizar(id, dados);
     }
 
-    // Login com e-mail e senha
-    @PostMapping("/login")
-    public ResponseEntity<Usuario> login(@RequestBody Usuario u) {
-        return ResponseEntity.ok(usuarioService.login(u.getEmail(), u.getSenha()));
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        usuarioService.logout();
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Exclui um usuário sem veículos nem agendamentos")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        usuarioService.excluir(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // Retorna o usuário logado, ou 401 se ninguém fez login
-    @GetMapping("/logado")
-    public ResponseEntity<Usuario> usuarioLogado() {
-        return usuarioService.usuarioLogado()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 }

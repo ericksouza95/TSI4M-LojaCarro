@@ -34,3 +34,6 @@ build/
 
 ### Logs ###
 logs/
+
+### Fotografias enviadas (pasta de imagens) ###
+/img/

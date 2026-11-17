@@ -2,19 +2,14 @@ package br.org.edu.ifrn.LojaCarro;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 
-@SpringBootApplication
-public class LojaCarroApplication extends SpringBootServletInitializer {
+// UserDetailsServiceAutoConfiguration é excluída porque a autenticação é feita pelo filtro JWT próprio
+// (sem ela o Spring criaria um usuário "user" com senha gerada)
+@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)
+public class LojaCarroApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(LojaCarroApplication.class, args);
 	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(LojaCarroApplication.class);
-	}
-
 }

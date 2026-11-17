@@ -1,31 +1,54 @@
 package br.org.edu.ifrn.LojaCarro.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "usuario")
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 120)
     private String nome;
-    @Column(unique = true)
+
+    @Column(nullable = false, unique = true, length = 160)
     private String email;
-    // A senha pode ser enviada pelo front, mas nunca é devolvida no JSON
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
+    // Somente o hash da senha é guardado. A entidade nunca é devolvida diretamente pela API (ver UsuarioResponse).
+    @Column(nullable = false, length = 100)
     private String senha;
+
+    @Column(length = 20)
+    private String telefone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Perfil perfil = Perfil.CLIENTE;
+
+    @Column(name = "data_cadastro", nullable = false, updatable = false)
     private LocalDateTime dataCadastro;
 
     public Usuario() {
     }
 
-    public Usuario(String nome, String email, String senha) {
+    public Usuario(String nome, String email, String senha, Perfil perfil) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
+        this.perfil = perfil;
+    }
+
+    @PrePersist
+    void aoCriar() {
+        dataCadastro = LocalDateTime.now();
+    }
+
+    public boolean isAdmin() {
+        return perfil == Perfil.ADMIN;
     }
 
     public Long getId() {
@@ -60,11 +83,23 @@ public class Usuario {
         this.senha = senha;
     }
 
-    public LocalDateTime getDataCadastro() {
-        return dataCadastro;
+    public String getTelefone() {
+        return telefone;
     }
 
-    public void setDataCadastro(LocalDateTime dataCadastro) {
-        this.dataCadastro = dataCadastro;
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public Perfil getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(Perfil perfil) {
+        this.perfil = perfil;
+    }
+
+    public LocalDateTime getDataCadastro() {
+        return dataCadastro;
     }
 }
