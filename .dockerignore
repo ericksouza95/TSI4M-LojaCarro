@@ -1,0 +1,12 @@
+.git
+.idea
+.vscode
+target
+logs
+img
+frontend
+logs-service
+docs
+docker
+*.md
+.env

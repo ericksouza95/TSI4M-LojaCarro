@@ -1,0 +1,98 @@
+# Publicação completa (ex.: AWS EC2): banco, RabbitMQ, API, microserviço de logs e frontend.
+# Apenas o frontend (Nginx, porta 80) fica exposto; os demais serviços só se comunicam pela rede interna.
+#
+#   cp .env.prod.example .env      # e preencha as senhas
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    # Ajustes para instâncias pequenas (menos memória)
+    command: ["--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=60"]
+    environment:
+      MYSQL_DATABASE: lojacarro
+      MYSQL_USER: ${DB_USERNAME:?defina DB_USERNAME no .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no .env}
+      TZ: America/Fortaleza
+    volumes:
+      - mysql-dados:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?defina RABBITMQ_USERNAME no .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD no .env}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  logs-service:
+    build: ./logs-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      LOGS_DB_URL: jdbc:mysql://mysql:3306/lojacarro_logs?serverTimezone=America/Fortaleza
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      LOGS_API_KEY: ${LOGS_API_KEY:?defina LOGS_API_KEY no .env}
+      JAVA_TOOL_OPTIONS: -Xms48m -Xmx128m -XX:+UseSerialGC -XX:MaxMetaspaceSize=100m -XX:ReservedCodeCacheSize=32m -Xss512k
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/lojacarro?serverTimezone=America/Fortaleza
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      JWT_EXPIRACAO_MINUTOS: ${JWT_EXPIRACAO_MINUTOS:-120}
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?defina ADMIN_EMAIL no .env}
+      ADMIN_SENHA: ${ADMIN_SENHA:?defina ADMIN_SENHA no .env}
+      DEMO_CLIENTE_EMAIL: ${DEMO_CLIENTE_EMAIL:-}
+      DEMO_CLIENTE_SENHA: ${DEMO_CLIENTE_SENHA:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      LOGS_URL: http://logs-service:8081
+      LOGS_API_KEY: ${LOGS_API_KEY}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=140m -XX:ReservedCodeCacheSize=48m -Xss512k
+    volumes:
+      # Fotografias dos veículos (pasta IMG) preservadas entre atualizações
+      - imagens:/app/img
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORTA:-80}:80"
+
+volumes:
+  mysql-dados:
+  imagens:
