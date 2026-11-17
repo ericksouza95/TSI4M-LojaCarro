@@ -1,18 +1,15 @@
 package br.org.edu.ifrn.LojaCarro.dto;
 
-import br.org.edu.ifrn.LojaCarro.model.LogSistema;
-
 import java.time.LocalDateTime;
 
+// Log de auditoria como devolvido pelo microserviço de logs
 public record LogResponse(
         Long id,
         LocalDateTime dataHora,
         String acao,
         String entidade,
         String descricao,
-        String usuario
+        String usuario,
+        String origem
 ) {
-    public static LogResponse de(LogSistema l) {
-        return new LogResponse(l.getId(), l.getDataHora(), l.getAcao(), l.getEntidade(), l.getDescricao(), l.getUsuario());
-    }
 }

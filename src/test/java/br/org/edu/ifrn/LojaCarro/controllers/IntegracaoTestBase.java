@@ -3,7 +3,6 @@ package br.org.edu.ifrn.LojaCarro.controllers;
 import br.org.edu.ifrn.LojaCarro.model.Perfil;
 import br.org.edu.ifrn.LojaCarro.model.Usuario;
 import br.org.edu.ifrn.LojaCarro.repository.AgendamentoRepository;
-import br.org.edu.ifrn.LojaCarro.repository.LogRepository;
 import br.org.edu.ifrn.LojaCarro.repository.UsuarioRepository;
 import br.org.edu.ifrn.LojaCarro.repository.VeiculoRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Base dos testes de integração: sobe a aplicação inteira com banco H2 (schema criado pelo Flyway)
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(RelogioFixoTestConfig.class)
+@Import({RelogioFixoTestConfig.class, AuditoriaTestConfig.class})
 abstract class IntegracaoTestBase {
 
     protected static final String SENHA = "123456";
@@ -57,8 +56,9 @@ abstract class IntegracaoTestBase {
     @Autowired
     protected UsuarioRepository usuarioRepository;
 
+    // Eventos de auditoria que seriam enviados ao RabbitMQ
     @Autowired
-    protected LogRepository logRepository;
+    protected PublicadorEmMemoria auditoria;
 
     @Value("${loja.imagens.diretorio}")
     private String diretorioImagens;
@@ -68,7 +68,7 @@ abstract class IntegracaoTestBase {
         agendamentoRepository.deleteAll();
         veiculoRepository.deleteAll();
         usuarioRepository.deleteAll();
-        logRepository.deleteAll();
+        auditoria.limpar();
         for (Path arquivo : arquivosDeImagem()) {
             Files.delete(arquivo);
         }

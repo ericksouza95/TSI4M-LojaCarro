@@ -14,6 +14,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql-dados:/var/lib/mysql
+      # Cria o banco do microservico de logs na primeira inicializacao
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
       interval: 5s

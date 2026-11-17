@@ -19,6 +19,7 @@
 		<java.version>17</java.version>
 		<springdoc.version>2.8.9</springdoc.version>
 		<jjwt.version>0.12.6</jjwt.version>
+		<jacoco.version>0.8.13</jacoco.version>
 	</properties>
 
 	<dependencies>
@@ -97,6 +98,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Publicação dos eventos de auditoria para o microserviço de logs -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
 		<!-- Banco em memória para os testes -->
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -110,6 +117,26 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- Relatório de cobertura gerado junto com os testes: target/site/jacoco/index.html -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>relatorio</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

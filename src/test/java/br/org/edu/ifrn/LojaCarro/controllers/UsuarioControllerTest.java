@@ -87,7 +87,7 @@ class UsuarioControllerTest extends IntegracaoTestBase {
         mockMvc.perform(get("/api/logs").with(token(tokenCliente))).andExpect(status().isForbidden());
 
         assertThat(usuarioRepository.existsById(idOutro)).isTrue();
-        assertThat(logRepository.findAllByOrderByIdDesc().get(0).getAcao()).isEqualTo("ACESSO_PROIBIDO");
+        assertThat(auditoria.ultimo().acao()).isEqualTo("ACESSO_PROIBIDO");
     }
 
     @Test

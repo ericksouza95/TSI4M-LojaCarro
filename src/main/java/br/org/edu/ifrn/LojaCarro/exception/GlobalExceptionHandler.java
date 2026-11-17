@@ -125,6 +125,12 @@ public class GlobalExceptionHandler {
         return resposta(HttpStatus.CONFLICT, "A operação viola uma restrição de integridade dos dados.", null, req);
     }
 
+    @ExceptionHandler(ServicoIndisponivelException.class)
+    public ResponseEntity<ErroResponse> servicoIndisponivel(ServicoIndisponivelException ex, HttpServletRequest req) {
+        logger.warn("Serviço externo indisponível em {} {}", req.getMethod(), req.getRequestURI());
+        return resposta(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), null, req);
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErroResponse> metodoNaoSuportado(HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
         return resposta(HttpStatus.METHOD_NOT_ALLOWED, "Método " + ex.getMethod() + " não suportado neste endereço.", null, req);

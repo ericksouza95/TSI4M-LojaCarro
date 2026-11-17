@@ -1,5 +1,6 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
+import br.org.edu.ifrn.LojaCarro.mensageria.EventoAuditoria;
 import br.org.edu.ifrn.LojaCarro.model.Usuario;
 import br.org.edu.ifrn.LojaCarro.security.JwtService;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,8 @@ class AuthControllerTest extends IntegracaoTestBase {
                 .andExpect(jsonPath("$.usuario.perfil").value("CLIENTE"))
                 .andExpect(jsonPath("$.usuario.senha").doesNotExist());
 
-        assertThat(logRepository.findAllByOrderByIdDesc().get(0).getUsuario()).isEqualTo("Ana (ana@email.com)");
+        assertThat(auditoria.ultimo().acao()).isEqualTo("LOGIN");
+        assertThat(auditoria.ultimo().usuario()).isEqualTo("Ana (ana@email.com)");
     }
 
     @Test
@@ -57,7 +59,7 @@ class AuthControllerTest extends IntegracaoTestBase {
                 .andExpect(jsonPath("$.erro").value("E-mail ou senha inválidos."))
                 .andExpect(jsonPath("$.token").doesNotExist());
 
-        assertThat(logRepository.findAllByOrderByIdDesc().get(0).getAcao()).isEqualTo("FALHA_LOGIN");
+        assertThat(auditoria.ultimo().acao()).isEqualTo("FALHA_LOGIN");
     }
 
     @Test
@@ -68,9 +70,9 @@ class AuthControllerTest extends IntegracaoTestBase {
         mockMvc.perform(get("/api/usuarios")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/logs")).andExpect(status().isUnauthorized());
 
-        assertThat(logRepository.findAllByOrderByIdDesc())
+        assertThat(auditoria.eventos())
                 .hasSize(3)
-                .extracting("acao").containsOnly("ACESSO_NEGADO");
+                .extracting(EventoAuditoria::acao).containsOnly("ACESSO_NEGADO");
     }
 
     @Test
@@ -120,6 +122,6 @@ class AuthControllerTest extends IntegracaoTestBase {
 
         mockMvc.perform(post("/api/auth/logout").with(token(token))).andExpect(status().isNoContent());
 
-        assertThat(logRepository.findAllByOrderByIdDesc().get(0).getAcao()).isEqualTo("LOGOUT");
+        assertThat(auditoria.ultimo().acao()).isEqualTo("LOGOUT");
     }
 }

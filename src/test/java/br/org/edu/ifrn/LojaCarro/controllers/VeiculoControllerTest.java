@@ -1,5 +1,6 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
+import br.org.edu.ifrn.LojaCarro.mensageria.EventoAuditoria;
 import br.org.edu.ifrn.LojaCarro.model.SituacaoVeiculo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -270,12 +271,13 @@ class VeiculoControllerTest extends IntegracaoTestBase {
     void operacoesFicamRegistradasNoLogComOAutor() throws Exception {
         cadastrarVeiculo(tokenAdmin, veiculoJson("Toyota", "Hilux", 2020, 2020, "210000"));
 
-        mockMvc.perform(get("/api/logs").with(token(tokenAdmin)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].acao").value("CRIAR"))
-                .andExpect(jsonPath("$[0].entidade").value("Veiculo"))
-                .andExpect(jsonPath("$[0].descricao").value(containsString("Toyota Hilux")))
-                .andExpect(jsonPath("$[0].usuario").value("Admin (admin@loja.com)"))
-                .andExpect(jsonPath("$[1].acao").value("LOGIN"));
+        // Evento enviado ao microserviço de logs: horário, usuário, ação e detalhes
+        EventoAuditoria evento = auditoria.ultimo();
+        assertThat(evento.acao()).isEqualTo("CRIAR");
+        assertThat(evento.entidade()).isEqualTo("Veiculo");
+        assertThat(evento.descricao()).contains("Toyota Hilux");
+        assertThat(evento.usuario()).isEqualTo("Admin (admin@loja.com)");
+        assertThat(evento.origem()).isEqualTo("lojacarro-api");
+        assertThat(evento.dataHora()).isNotNull();
     }
 }
