@@ -5,8 +5,11 @@ import br.org.edu.ifrn.LojaCarro.dto.VeiculoRequest;
 import br.org.edu.ifrn.LojaCarro.dto.VeiculoResponse;
 import br.org.edu.ifrn.LojaCarro.exception.RecursoNaoEncontradoException;
 import br.org.edu.ifrn.LojaCarro.exception.RegraNegocioException;
+import br.org.edu.ifrn.LojaCarro.model.Agendamento;
 import br.org.edu.ifrn.LojaCarro.model.SituacaoVeiculo;
+import br.org.edu.ifrn.LojaCarro.model.StatusAgendamento;
 import br.org.edu.ifrn.LojaCarro.model.Veiculo;
+import br.org.edu.ifrn.LojaCarro.repository.AgendamentoRepository;
 import br.org.edu.ifrn.LojaCarro.repository.UsuarioRepository;
 import br.org.edu.ifrn.LojaCarro.repository.VeiculoRepository;
 import br.org.edu.ifrn.LojaCarro.repository.VeiculoSpecifications;
@@ -20,6 +23,8 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 
@@ -30,17 +35,22 @@ public class VeiculoService {
 
     private final VeiculoRepository veiculoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AgendamentoRepository agendamentoRepository;
     private final ImagemService imagemService;
     private final LogService logService;
     private final UsuarioLogado usuarioLogado;
+    private final Clock relogio;
 
     public VeiculoService(VeiculoRepository veiculoRepository, UsuarioRepository usuarioRepository,
-                          ImagemService imagemService, LogService logService, UsuarioLogado usuarioLogado) {
+                          AgendamentoRepository agendamentoRepository, ImagemService imagemService,
+                          LogService logService, UsuarioLogado usuarioLogado, Clock relogio) {
         this.veiculoRepository = veiculoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.agendamentoRepository = agendamentoRepository;
         this.imagemService = imagemService;
         this.logService = logService;
         this.usuarioLogado = usuarioLogado;
+        this.relogio = relogio;
     }
 
     public record FotoVeiculo(Resource arquivo, MediaType tipo) {
@@ -129,7 +139,22 @@ public class VeiculoService {
         Veiculo salvo = veiculoRepository.save(veiculo);
         logService.registrar("ALTERAR_SITUACAO", ENTIDADE,
                 "Veículo ID " + id + " (" + descrever(salvo) + "): " + anterior + " -> " + novaSituacao);
+        if (novaSituacao != SituacaoVeiculo.DISPONIVEL) {
+            cancelarTestDrivesFuturos(salvo);
+        }
         return VeiculoResponse.de(salvo);
+    }
+
+    // Veículo vendido ou desativado não pode receber test drive: os agendamentos futuros são cancelados
+    private void cancelarTestDrivesFuturos(Veiculo veiculo) {
+        LocalDateTime agora = LocalDateTime.now(relogio);
+        List<Agendamento> futuros = agendamentoRepository.findByVeiculoIdAndStatusAndDataHoraInicioAfter(
+                veiculo.getId(), StatusAgendamento.CONFIRMADO, agora);
+        futuros.forEach(a -> a.cancelar(agora));
+        if (!futuros.isEmpty()) {
+            logService.registrar("CANCELAR", "Agendamento", futuros.size() + " test drive(s) futuro(s) do veículo ID "
+                    + veiculo.getId() + " cancelado(s) porque o veículo ficou " + veiculo.getSituacao());
+        }
     }
 
     // Exclusão lógica: o registro continua no banco para preservar o histórico de agendamentos

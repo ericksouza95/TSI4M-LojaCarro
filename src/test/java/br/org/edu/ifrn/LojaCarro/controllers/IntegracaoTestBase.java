@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Base dos testes de integração: sobe a aplicação inteira com banco H2 (schema criado pelo Flyway)
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(RelogioFixoTestConfig.class)
 abstract class IntegracaoTestBase {
 
     protected static final String SENHA = "123456";

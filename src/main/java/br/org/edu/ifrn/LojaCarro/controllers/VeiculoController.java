@@ -1,15 +1,18 @@
 package br.org.edu.ifrn.LojaCarro.controllers;
 
+import br.org.edu.ifrn.LojaCarro.dto.HorarioDisponivelResponse;
 import br.org.edu.ifrn.LojaCarro.dto.SituacaoVeiculoRequest;
 import br.org.edu.ifrn.LojaCarro.dto.VeiculoFiltro;
 import br.org.edu.ifrn.LojaCarro.dto.VeiculoRequest;
 import br.org.edu.ifrn.LojaCarro.dto.VeiculoResponse;
 import br.org.edu.ifrn.LojaCarro.model.SituacaoVeiculo;
+import br.org.edu.ifrn.LojaCarro.services.AgendamentoService;
 import br.org.edu.ifrn.LojaCarro.services.VeiculoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -27,9 +31,11 @@ import java.util.concurrent.TimeUnit;
 public class VeiculoController {
 
     private final VeiculoService veiculoService;
+    private final AgendamentoService agendamentoService;
 
-    public VeiculoController(VeiculoService veiculoService) {
+    public VeiculoController(VeiculoService veiculoService, AgendamentoService agendamentoService) {
         this.veiculoService = veiculoService;
+        this.agendamentoService = agendamentoService;
     }
 
     @GetMapping
@@ -57,6 +63,13 @@ public class VeiculoController {
                                                      @RequestPart("foto") MultipartFile foto) {
         VeiculoResponse criado = veiculoService.cadastrar(dados, foto);
         return ResponseEntity.created(URI.create("/api/veiculos/" + criado.id())).body(criado);
+    }
+
+    @GetMapping("/{id}/horarios")
+    @Operation(summary = "Grade de horários de test drive do veículo no dia (livres e ocupados)")
+    public List<HorarioDisponivelResponse> horarios(@PathVariable Long id,
+                                                    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return agendamentoService.horariosDisponiveis(id, data);
     }
 
     @GetMapping("/{id}/foto")

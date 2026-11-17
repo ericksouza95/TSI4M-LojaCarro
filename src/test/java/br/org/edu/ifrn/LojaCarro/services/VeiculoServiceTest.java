@@ -6,20 +6,24 @@ import br.org.edu.ifrn.LojaCarro.dto.VeiculoResponse;
 import br.org.edu.ifrn.LojaCarro.exception.RecursoNaoEncontradoException;
 import br.org.edu.ifrn.LojaCarro.exception.RegraNegocioException;
 import br.org.edu.ifrn.LojaCarro.model.*;
+import br.org.edu.ifrn.LojaCarro.repository.AgendamentoRepository;
 import br.org.edu.ifrn.LojaCarro.repository.UsuarioRepository;
 import br.org.edu.ifrn.LojaCarro.repository.VeiculoRepository;
 import br.org.edu.ifrn.LojaCarro.security.UsuarioAutenticado;
 import br.org.edu.ifrn.LojaCarro.security.UsuarioLogado;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,9 +50,18 @@ class VeiculoServiceTest {
     @Mock
     private ImagemService imagemService;
 
+    @BeforeEach
+    void criarServico() {
+        Clock relogio = Clock.fixed(Instant.parse("2030-03-04T12:00:00Z"), ZoneId.of("America/Fortaleza"));
+        veiculoService = new VeiculoService(veiculoRepository, usuarioRepository, agendamentoRepository,
+                imagemService, logService, usuarioLogado, relogio);
+    }
+
     private final MockMultipartFile foto = new MockMultipartFile("foto", "carro.png", "image/png", new byte[]{1, 2, 3});
 
-    @InjectMocks
+    @Mock
+    private AgendamentoRepository agendamentoRepository;
+
     private VeiculoService veiculoService;
 
     private static VeiculoRequest request(int anoFabricacao, int anoModelo, String preco) {

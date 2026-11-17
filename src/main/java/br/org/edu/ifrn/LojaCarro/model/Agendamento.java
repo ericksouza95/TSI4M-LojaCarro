@@ -55,6 +55,25 @@ public class Agendamento {
         dataCriacao = LocalDateTime.now();
     }
 
+    public boolean isConfirmado() {
+        return status == StatusAgendamento.CONFIRMADO;
+    }
+
+    // Só agendamentos confirmados que ainda não começaram podem ser cancelados
+    public boolean podeSerCancelado(LocalDateTime agora) {
+        return isConfirmado() && dataHoraInicio.isAfter(agora);
+    }
+
+    // Cancelar libera o horário: a verificação de conflito só considera agendamentos CONFIRMADOS
+    public void cancelar(LocalDateTime agora) {
+        status = StatusAgendamento.CANCELADO;
+        dataCancelamento = agora;
+    }
+
+    public void marcarComoRealizado() {
+        status = StatusAgendamento.REALIZADO;
+    }
+
     public Long getId() {
         return id;
     }

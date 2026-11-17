@@ -91,6 +91,12 @@ public class GlobalExceptionHandler {
         return resposta(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null, req);
     }
 
+    @ExceptionHandler(ConflitoHorarioException.class)
+    public ResponseEntity<ErroResponse> conflitoHorario(ConflitoHorarioException ex, HttpServletRequest req) {
+        logService.registrar("CONFLITO_HORARIO", "Agendamento", ex.getMessage());
+        return resposta(HttpStatus.CONFLICT, ex.getMessage(), null, req);
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroResponse> naoEncontrado(RecursoNaoEncontradoException ex, HttpServletRequest req) {
         return resposta(HttpStatus.NOT_FOUND, ex.getMessage(), null, req);

@@ -50,6 +50,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/logs/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/agendamentos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/agendamentos/*/realizado").hasRole("ADMIN")
+
+                        // Somente cliente: agendar test drive
+                        .requestMatchers(HttpMethod.POST, "/api/agendamentos").hasRole("CLIENTE")
 
                         // Demais rotas exigem apenas login (o dono do recurso é verificado nos services)
                         .anyRequest().authenticated())
