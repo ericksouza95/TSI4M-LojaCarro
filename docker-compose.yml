@@ -1,0 +1,38 @@
+# Infraestrutura para desenvolvimento local: banco MySQL e RabbitMQ.
+# Subir:  docker compose up -d      Parar:  docker compose down
+# As credenciais abaixo são apenas de desenvolvimento e podem ser trocadas num arquivo .env (ver .env.example).
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: lojacarro
+      MYSQL_USER: ${DB_USERNAME:-lojacarro}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-lojacarro}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: America/Fortaleza
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-dados:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-lojacarro}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-lojacarro}
+    ports:
+      - "5672:5672"   # AMQP (aplicações)
+      - "15672:15672" # painel de administração: http://localhost:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql-dados:

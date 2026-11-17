@@ -37,3 +37,6 @@ logs/
 
 ### Fotografias enviadas (pasta de imagens) ###
 /img/
+
+### Variaveis de ambiente locais ###
+.env
