@@ -1,0 +1,122 @@
+<div class="container pagina">
+  <a routerLink="/admin/veiculos" class="voltar"><mat-icon>arrow_back</mat-icon> Voltar para a lista</a>
+
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>{{ edicao() ? 'Editar veículo' : 'Novo veículo' }}</h1>
+      <p>Campos com * são obrigatórios.</p>
+    </div>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando mensagem="Carregando veículo..." />
+  } @else {
+    <form class="layout" [formGroup]="formulario" (ngSubmit)="salvar()" novalidate>
+      <section class="painel">
+        @if (erro()) {
+          <div class="alerta-erro" role="alert"><mat-icon>error_outline</mat-icon>{{ erro() }}</div>
+        }
+
+        <h2>Identificação</h2>
+        <div class="campos">
+          <mat-form-field>
+            <mat-label>Marca</mat-label>
+            <input matInput formControlName="marca" required />
+            @if (formulario.controls.marca.hasError('required')) { <mat-error>Informe a marca.</mat-error> }
+            @if (formulario.controls.marca.hasError('servidor')) { <mat-error>{{ formulario.controls.marca.getError('servidor') }}</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Modelo</mat-label>
+            <input matInput formControlName="modelo" required />
+            @if (formulario.controls.modelo.hasError('required')) { <mat-error>Informe o modelo.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Ano de fabricação</mat-label>
+            <input matInput type="number" formControlName="anoFabricacao" required />
+            @if (formulario.controls.anoFabricacao.hasError('required')) { <mat-error>Informe o ano.</mat-error> }
+            @else if (formulario.controls.anoFabricacao.invalid) { <mat-error>Entre 1900 e {{ anoAtual }}.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Ano do modelo</mat-label>
+            <input matInput type="number" formControlName="anoModelo" required />
+            @if (formulario.controls.anoModelo.hasError('required')) { <mat-error>Informe o ano do modelo.</mat-error> }
+          </mat-form-field>
+        </div>
+        @if (formulario.hasError('anosIncoerentes') && formulario.controls.anoModelo.touched) {
+          <p class="erro-grupo" role="alert">O ano do modelo deve ser igual ao de fabricação ou o ano seguinte.</p>
+        }
+
+        <h2>Características</h2>
+        <div class="campos">
+          <mat-form-field>
+            <mat-label>Cor</mat-label>
+            <input matInput formControlName="cor" required />
+            @if (formulario.controls.cor.hasError('required')) { <mat-error>Informe a cor.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Quilometragem</mat-label>
+            <input matInput type="number" formControlName="quilometragem" min="0" required />
+            <span matTextSuffix>km</span>
+            @if (formulario.controls.quilometragem.hasError('required')) { <mat-error>Informe a quilometragem.</mat-error> }
+            @else if (formulario.controls.quilometragem.hasError('min')) { <mat-error>Não pode ser negativa.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Combustível</mat-label>
+            <mat-select formControlName="combustivel" required>
+              @for (c of combustiveis; track c[0]) { <mat-option [value]="c[0]">{{ c[1] }}</mat-option> }
+            </mat-select>
+            @if (formulario.controls.combustivel.hasError('required')) { <mat-error>Escolha o combustível.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Transmissão</mat-label>
+            <mat-select formControlName="transmissao" required>
+              @for (t of transmissoes; track t[0]) { <mat-option [value]="t[0]">{{ t[1] }}</mat-option> }
+            </mat-select>
+            @if (formulario.controls.transmissao.hasError('required')) { <mat-error>Escolha a transmissão.</mat-error> }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Preço</mat-label>
+            <span matTextPrefix>R$&nbsp;</span>
+            <input matInput type="number" formControlName="preco" min="0" step="0.01" required />
+            @if (formulario.controls.preco.hasError('required')) { <mat-error>Informe o preço.</mat-error> }
+            @else if (formulario.controls.preco.hasError('min')) { <mat-error>O preço deve ser maior que zero.</mat-error> }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field class="largura-total">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput formControlName="descricao" rows="4" placeholder="Estado de conservação, opcionais, revisões..."></textarea>
+          <mat-hint align="end">{{ formulario.controls.descricao.value?.length ?? 0 }}/2000</mat-hint>
+          @if (formulario.controls.descricao.hasError('maxlength')) { <mat-error>Máximo de 2000 caracteres.</mat-error> }
+        </mat-form-field>
+      </section>
+
+      <aside class="painel foto">
+        <h2>Fotografia principal {{ edicao() ? '' : '*' }}</h2>
+        <div class="previa" [class.vazia]="!previa()">
+          @if (previa()) {
+            <img [src]="previa()" alt="Prévia da fotografia" />
+          } @else {
+            <mat-icon>add_photo_alternate</mat-icon>
+            <span>Nenhuma foto selecionada</span>
+          }
+        </div>
+        <input #seletor type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="selecionarFoto($event)" />
+        <button mat-stroked-button type="button" (click)="seletor.click()">
+          <mat-icon>upload</mat-icon> {{ previa() ? 'Trocar foto' : 'Escolher foto' }}
+        </button>
+        <small>JPG, PNG ou WebP, até 5 MB.</small>
+        @if (erroFoto()) {
+          <p class="erro-grupo" role="alert">{{ erroFoto() }}</p>
+        }
+      </aside>
+
+      <div class="acoes-formulario">
+        <a mat-button routerLink="/admin/veiculos">Cancelar</a>
+        <button mat-flat-button type="submit" [disabled]="enviando()">
+          @if (enviando()) { <mat-spinner diameter="20" /> } @else { {{ edicao() ? 'Salvar alterações' : 'Cadastrar veículo' }} }
+        </button>
+      </div>
+    </form>
+  }
+</div>

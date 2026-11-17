@@ -1,0 +1,75 @@
+<div class="container pagina-auth">
+  <form class="painel cartao-auth" [formGroup]="formulario" (ngSubmit)="cadastrar()" novalidate>
+    <mat-icon class="icone">person_add</mat-icon>
+    <h1>Criar conta</h1>
+    <p class="subtitulo">Cadastre-se para agendar test drives e acompanhar suas reservas.</p>
+
+    @if (erro()) {
+      <div class="alerta-erro" role="alert"><mat-icon>error_outline</mat-icon>{{ erro() }}</div>
+    }
+
+    <mat-form-field class="largura-total">
+      <mat-label>Nome completo</mat-label>
+      <input matInput formControlName="nome" autocomplete="name" />
+      @if (formulario.controls.nome.hasError('required')) {
+        <mat-error>Informe seu nome.</mat-error>
+      } @else if (formulario.controls.nome.hasError('servidor')) {
+        <mat-error>{{ formulario.controls.nome.getError('servidor') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="largura-total">
+      <mat-label>E-mail</mat-label>
+      <input matInput type="email" formControlName="email" autocomplete="email" />
+      @if (formulario.controls.email.hasError('required')) {
+        <mat-error>Informe o e-mail.</mat-error>
+      } @else if (formulario.controls.email.hasError('email')) {
+        <mat-error>E-mail inválido.</mat-error>
+      } @else if (formulario.controls.email.hasError('servidor')) {
+        <mat-error>{{ formulario.controls.email.getError('servidor') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="largura-total">
+      <mat-label>Telefone (opcional)</mat-label>
+      <input matInput type="tel" formControlName="telefone" autocomplete="tel" placeholder="(84) 99999-0000" />
+      @if (formulario.controls.telefone.invalid) {
+        <mat-error>Telefone inválido.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="largura-total">
+      <mat-label>Senha</mat-label>
+      <input matInput type="password" formControlName="senha" autocomplete="new-password" />
+      <mat-hint>Mínimo de 6 caracteres</mat-hint>
+      @if (formulario.controls.senha.hasError('required')) {
+        <mat-error>Informe uma senha.</mat-error>
+      } @else if (formulario.controls.senha.hasError('minlength')) {
+        <mat-error>A senha deve ter pelo menos 6 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="largura-total">
+      <mat-label>Confirme a senha</mat-label>
+      <input matInput type="password" formControlName="confirmacao" autocomplete="new-password" />
+      @if (formulario.controls.confirmacao.hasError('required')) {
+        <mat-error>Repita a senha.</mat-error>
+      }
+    </mat-form-field>
+    @if (formulario.hasError('senhasDiferentes') && formulario.controls.confirmacao.touched) {
+      <p class="erro-grupo" role="alert">As senhas não conferem.</p>
+    }
+
+    <button mat-flat-button class="largura-total" type="submit" [disabled]="enviando()">
+      @if (enviando()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Criar conta
+      }
+    </button>
+
+    <p class="rodape-auth">
+      Já tem conta? <a routerLink="/login" [queryParams]="redirect() ? { redirect: redirect() } : {}">Entrar</a>
+    </p>
+  </form>
+</div>

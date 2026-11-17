@@ -1,0 +1,57 @@
+<div class="container pagina">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Meus test drives</h1>
+      <p>Acompanhe e cancele seus agendamentos.</p>
+    </div>
+    <a mat-flat-button routerLink="/veiculos"><mat-icon>add</mat-icon> Agendar outro</a>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando />
+  } @else if (agendamentos().length === 0) {
+    <app-estado-vazio icone="event" titulo="Você ainda não agendou nenhum test drive"
+                      mensagem="Escolha um veículo no catálogo e reserve um horário.">
+      <a mat-flat-button routerLink="/veiculos">Ver veículos</a>
+    </app-estado-vazio>
+  } @else {
+    <h2>Próximos</h2>
+    @if (proximos().length === 0) {
+      <p class="sem-itens">Nenhum test drive agendado.</p>
+    }
+    <div class="lista">
+      @for (a of proximos(); track a.id) {
+        <ng-container *ngTemplateOutlet="cartao; context: { $implicit: a }" />
+      }
+    </div>
+
+    @if (historico().length > 0) {
+      <h2>Histórico</h2>
+      <div class="lista historico">
+        @for (a of historico(); track a.id) {
+          <ng-container *ngTemplateOutlet="cartao; context: { $implicit: a }" />
+        }
+      </div>
+    }
+  }
+</div>
+
+<ng-template #cartao let-a>
+  <article class="painel agendamento">
+    <div class="data">
+      <span class="dia">{{ paraData(a.data) | date: 'dd' }}</span>
+      <span class="mes">{{ paraData(a.data) | date: 'MMM' }}</span>
+    </div>
+    <div class="info">
+      <a [routerLink]="['/veiculos', a.veiculoId]" class="veiculo">{{ a.veiculo }}</a>
+      <span><mat-icon>schedule</mat-icon> {{ paraData(a.data) | date: 'EEEE' }}, {{ a.horarioInicio }} às {{ a.horarioFim }}</span>
+      <span class="criado">Agendado em {{ a.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+    <div class="acoes">
+      <app-status-chip [valor]="a.status" />
+      @if (a.cancelavel) {
+        <button mat-stroked-button (click)="cancelar(a)" [disabled]="cancelando() === a.id">Cancelar</button>
+      }
+    </div>
+  </article>
+</ng-template>

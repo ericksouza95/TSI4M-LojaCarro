@@ -1,0 +1,163 @@
+@use '@angular/material' as mat;
+
+// Tema Material 3: azul como cor principal e laranja como destaque
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$blue-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Inter,
+    density: 0,
+  ));
+
+  --loja-escuro: #14213d;
+  --loja-destaque: #fca311;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+}
+
+// ---------- Layout ----------
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.pagina {
+  padding-top: 28px;
+}
+
+.cabecalho-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.painel {
+  background: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.grade-veiculos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 16px;
+}
+
+.acoes-formulario {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.largura-total {
+  width: 100%;
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+// ---------- Tabelas responsivas ----------
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  table {
+    width: 100%;
+    min-width: 720px;
+  }
+}
+
+.miniatura {
+  width: 64px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+// ---------- Visibilidade por tamanho de tela ----------
+
+@media (max-width: 799px) {
+  .so-desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 800px) {
+  .so-mobile {
+    display: none !important;
+  }
+}
+
+// ---------- Avisos (snackbar) e botões ----------
+
+.aviso-sucesso {
+  --mat-snack-bar-container-color: #1b5e20;
+  --mat-snack-bar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #c8e6c9;
+}
+
+.aviso-erro {
+  --mat-snack-bar-container-color: #9b1c1c;
+  --mat-snack-bar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #ffcdd2;
+}
+
+.botao-perigo {
+  --mat-button-filled-container-color: #b3261e;
+  --mat-button-filled-label-text-color: #fff;
+}
+
+.botao-destaque {
+  --mat-button-filled-container-color: var(--loja-destaque);
+  --mat-button-filled-label-text-color: var(--loja-escuro);
+}

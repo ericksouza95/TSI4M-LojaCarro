@@ -1,0 +1,101 @@
+h2 {
+  margin: 24px 0 12px;
+  font-size: 1.2rem;
+}
+
+.sem-itens {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historico .agendamento {
+  opacity: 0.75;
+}
+
+.agendamento {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 58px;
+  padding: 8px 0;
+  border-radius: 12px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+
+  .dia {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .mes {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.veiculo {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.criado {
+  font-size: 0.8rem;
+}
+
+.acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 599px) {
+  .agendamento {
+    flex-wrap: wrap;
+  }
+
+  .acoes {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

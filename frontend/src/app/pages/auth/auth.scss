@@ -1,0 +1,68 @@
+.pagina-auth {
+  display: flex;
+  justify-content: center;
+  padding-top: 48px;
+}
+
+.cartao-auth {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 28px;
+
+  h1 {
+    margin: 4px 0;
+    font-size: 1.7rem;
+  }
+}
+
+.icone {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: var(--mat-sys-primary);
+}
+
+.subtitulo {
+  margin: 0 0 20px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.alerta-erro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fde2e1;
+  color: #9b1c1c;
+  font-size: 0.9rem;
+}
+
+.erro-grupo {
+  margin: -8px 0 12px;
+  font-size: 0.8rem;
+  color: var(--mat-sys-error);
+}
+
+button[type='submit'] {
+  height: 44px;
+  margin-top: 8px;
+
+  mat-spinner {
+    margin: 0 auto;
+  }
+}
+
+.rodape-auth {
+  margin: 20px 0 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: var(--mat-sys-primary);
+    font-weight: 600;
+  }
+}

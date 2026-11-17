@@ -1,0 +1,92 @@
+<div class="container pagina">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Gerenciar veículos</h1>
+      <p>Cadastre, edite e controle a situação dos veículos.</p>
+    </div>
+    <a mat-flat-button routerLink="/admin/veiculos/novo"><mat-icon>add</mat-icon> Novo veículo</a>
+  </div>
+
+  <div class="painel filtros-admin">
+    <mat-form-field>
+      <mat-label>Buscar por marca ou modelo</mat-label>
+      <input matInput [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Situação</mat-label>
+      <mat-select multiple [ngModel]="situacoesFiltro()" (ngModelChange)="situacoesFiltro.set($event)">
+        @for (s of situacoes; track s[0]) {
+          <mat-option [value]="s[0]">{{ s[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando />
+  } @else if (filtrados().length === 0) {
+    <app-estado-vazio icone="directions_car" titulo="Nenhum veículo encontrado" mensagem="Ajuste os filtros ou cadastre um novo veículo." />
+  } @else {
+    <div class="tabela-rolagem">
+      <table mat-table [dataSource]="filtrados()">
+        <ng-container matColumnDef="foto">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let v">
+            @if (v.fotoUrl) {
+              <img class="miniatura" [src]="v.fotoUrl" alt="" />
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="veiculo">
+          <th mat-header-cell *matHeaderCellDef>Veículo</th>
+          <td mat-cell *matCellDef="let v">
+            <strong>{{ v.marca }} {{ v.modelo }}</strong><br />
+            <small>{{ v.cor }}</small>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="ano">
+          <th mat-header-cell *matHeaderCellDef>Ano</th>
+          <td mat-cell *matCellDef="let v">{{ v.anoFabricacao }}/{{ v.anoModelo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="km">
+          <th mat-header-cell *matHeaderCellDef>Km</th>
+          <td mat-cell *matCellDef="let v">{{ v.quilometragem | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="preco">
+          <th mat-header-cell *matHeaderCellDef>Preço</th>
+          <td mat-cell *matCellDef="let v">{{ v.preco | currency }}</td>
+        </ng-container>
+        <ng-container matColumnDef="situacao">
+          <th mat-header-cell *matHeaderCellDef>Situação</th>
+          <td mat-cell *matCellDef="let v"><app-status-chip [valor]="v.situacao" tipo="situacao" /></td>
+        </ng-container>
+        <ng-container matColumnDef="acoes">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let v" class="celula-acoes">
+            <a mat-icon-button [routerLink]="['/admin/veiculos', v.id, 'editar']" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button mat-icon-button [matMenuTriggerFor]="menuSituacao" matTooltip="Alterar situação">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menuSituacao="matMenu">
+              @if (v.situacao !== 'DISPONIVEL') {
+                <button mat-menu-item (click)="alterarSituacao(v, 'DISPONIVEL')"><mat-icon>check_circle</mat-icon>Marcar como disponível</button>
+              }
+              @if (v.situacao !== 'VENDIDO') {
+                <button mat-menu-item (click)="alterarSituacao(v, 'VENDIDO')"><mat-icon>sell</mat-icon>Marcar como vendido</button>
+              }
+              @if (v.situacao !== 'INATIVO') {
+                <button mat-menu-item (click)="alterarSituacao(v, 'INATIVO')"><mat-icon>block</mat-icon>Desativar</button>
+              }
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+        <tr mat-row *matRowDef="let linha; columns: colunas"></tr>
+      </table>
+    </div>
+  }
+</div>

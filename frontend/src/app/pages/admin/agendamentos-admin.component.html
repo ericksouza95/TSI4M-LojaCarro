@@ -1,0 +1,89 @@
+<div class="container pagina">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Agendamentos de test drive</h1>
+      <p>Consulte por data, veículo e situação. Cancele ou registre os test drives realizados.</p>
+    </div>
+  </div>
+
+  <form class="painel filtros-admin" (ngSubmit)="carregar()">
+    <mat-form-field>
+      <mat-label>Data</mat-label>
+      <input matInput readonly name="data" [matDatepicker]="calendario" [ngModel]="data()" (ngModelChange)="data.set($event)" (click)="calendario.open()" />
+      <mat-datepicker-toggle matIconSuffix [for]="calendario" />
+      <mat-datepicker #calendario />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Veículo</mat-label>
+      <mat-select name="veiculo" [ngModel]="veiculoId()" (ngModelChange)="veiculoId.set($event)">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (v of veiculos(); track v.id) {
+          <mat-option [value]="v.id">{{ v.marca }} {{ v.modelo }} ({{ v.anoModelo }})</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Situação</mat-label>
+      <mat-select name="status" [ngModel]="status()" (ngModelChange)="status.set($event)">
+        <mat-option [value]="null">Todas</mat-option>
+        @for (s of statusOpcoes; track s[0]) {
+          <mat-option [value]="s[0]">{{ s[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <div class="botoes-filtro">
+      <button mat-flat-button type="submit"><mat-icon>filter_list</mat-icon> Filtrar</button>
+      <button mat-button type="button" (click)="limparFiltros()">Limpar</button>
+    </div>
+  </form>
+
+  @if (carregando()) {
+    <app-carregando />
+  } @else if (agendamentos().length === 0) {
+    <app-estado-vazio icone="event_busy" titulo="Nenhum agendamento encontrado" mensagem="Altere os filtros para ver outros agendamentos." />
+  } @else {
+    <div class="tabela-rolagem">
+      <table mat-table [dataSource]="agendamentos()">
+        <ng-container matColumnDef="data">
+          <th mat-header-cell *matHeaderCellDef>Data e horário</th>
+          <td mat-cell *matCellDef="let a">
+            <strong>{{ paraData(a.data) | date: 'dd/MM/yyyy' }}</strong><br />
+            <small>{{ a.horarioInicio }} – {{ a.horarioFim }}</small>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="cliente">
+          <th mat-header-cell *matHeaderCellDef>Cliente</th>
+          <td mat-cell *matCellDef="let a">
+            <div class="contato">
+              <strong>{{ a.clienteNome }}</strong>
+              <small>{{ a.clienteEmail }}</small>
+              @if (a.clienteTelefone) { <small>{{ a.clienteTelefone }}</small> }
+            </div>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="veiculo">
+          <th mat-header-cell *matHeaderCellDef>Veículo</th>
+          <td mat-cell *matCellDef="let a">{{ a.veiculo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Situação</th>
+          <td mat-cell *matCellDef="let a"><app-status-chip [valor]="a.status" /></td>
+        </ng-container>
+        <ng-container matColumnDef="acoes">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let a" class="celula-acoes">
+            @if (podeMarcarRealizado(a)) {
+              <button mat-icon-button matTooltip="Marcar como realizado" (click)="marcarRealizado(a)"><mat-icon>task_alt</mat-icon></button>
+            }
+            @if (a.cancelavel) {
+              <button mat-icon-button matTooltip="Cancelar" (click)="cancelar(a)"><mat-icon>event_busy</mat-icon></button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+        <tr mat-row *matRowDef="let linha; columns: colunas"></tr>
+      </table>
+    </div>
+  }
+</div>

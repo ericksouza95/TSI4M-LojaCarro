@@ -1,0 +1,56 @@
+<section class="hero">
+  <div class="container hero-conteudo">
+    <h1>Encontre seu próximo carro e <span>agende o test drive</span> em minutos</h1>
+    <p>Seminovos revisados, com fotos reais e horários de test drive disponíveis online.</p>
+    <form class="busca" (ngSubmit)="pesquisar()" role="search">
+      <mat-icon>search</mat-icon>
+      <input name="busca" [(ngModel)]="busca" placeholder="Busque por marca ou modelo (ex.: Corolla)" aria-label="Buscar veículos" />
+      <button mat-flat-button class="botao-destaque" type="submit">Buscar</button>
+    </form>
+  </div>
+</section>
+
+<section class="container secao">
+  <div class="cabecalho-pagina">
+    <div>
+      <h2>Chegaram agora</h2>
+      <p>Os veículos mais recentes do nosso estoque</p>
+    </div>
+    <a mat-stroked-button routerLink="/veiculos">Ver todos <mat-icon iconPositionEnd>arrow_forward</mat-icon></a>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando mensagem="Carregando veículos..." />
+  } @else if (falhou()) {
+    <app-estado-vazio icone="cloud_off" titulo="Não foi possível carregar os veículos" mensagem="Tente novamente em instantes." />
+  } @else if (destaques().length === 0) {
+    <app-estado-vazio icone="directions_car" titulo="Nenhum veículo disponível no momento" mensagem="Volte em breve: nosso estoque é atualizado toda semana." />
+  } @else {
+    <div class="grade-veiculos">
+      @for (veiculo of destaques(); track veiculo.id) {
+        <app-veiculo-card [veiculo]="veiculo" />
+      }
+    </div>
+  }
+</section>
+
+<section class="container secao">
+  <h2 class="titulo-passos">Como funciona o test drive</h2>
+  <div class="passos">
+    <div class="passo">
+      <mat-icon>search</mat-icon>
+      <h3>1. Escolha o veículo</h3>
+      <p>Filtre por marca, modelo, preço e ano e veja fotos e detalhes de cada carro.</p>
+    </div>
+    <div class="passo">
+      <mat-icon>event_available</mat-icon>
+      <h3>2. Reserve um horário</h3>
+      <p>Crie sua conta e escolha um horário livre. Cada test drive dura 30 minutos.</p>
+    </div>
+    <div class="passo">
+      <mat-icon>key</mat-icon>
+      <h3>3. Venha dirigir</h3>
+      <p>O carro estará reservado para você. Imprevisto? Cancele pelo site com antecedência.</p>
+    </div>
+  </div>
+</section>

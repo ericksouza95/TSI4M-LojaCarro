@@ -1,0 +1,79 @@
+<div class="container pagina">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Veículos disponíveis</h1>
+      @if (!carregando()) {
+        <p>{{ veiculos().length }} {{ veiculos().length === 1 ? 'veículo encontrado' : 'veículos encontrados' }}</p>
+      }
+    </div>
+    <button mat-stroked-button class="so-mobile" type="button" (click)="filtrosAbertos.set(!filtrosAbertos())">
+      <mat-icon>tune</mat-icon> Filtros
+    </button>
+  </div>
+
+  <div class="layout">
+    <form class="painel filtros" [class.aberto]="filtrosAbertos()" [formGroup]="filtros" (ngSubmit)="aplicarFiltros()">
+      <h2>Filtrar</h2>
+      <mat-form-field class="largura-total">
+        <mat-label>Marca ou modelo</mat-label>
+        <input matInput formControlName="busca" placeholder="Ex.: Toyota, Civic" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <span class="rotulo-grupo">Faixa de preço (R$)</span>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>Mínimo</mat-label>
+          <input matInput type="number" formControlName="precoMin" min="0" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Máximo</mat-label>
+          <input matInput type="number" formControlName="precoMax" min="0" />
+        </mat-form-field>
+      </div>
+
+      <span class="rotulo-grupo">Ano do modelo</span>
+      <div class="dupla">
+        <mat-form-field>
+          <mat-label>De</mat-label>
+          <input matInput type="number" formControlName="anoMin" />
+          @if (filtros.controls.anoMin.invalid) {
+            <mat-error>Ano inválido</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Até</mat-label>
+          <input matInput type="number" formControlName="anoMax" />
+          @if (filtros.controls.anoMax.invalid) {
+            <mat-error>Ano inválido</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="acoes-filtro">
+        <button mat-flat-button type="submit">Aplicar filtros</button>
+        @if (quantidadeFiltros > 0) {
+          <button mat-button type="button" (click)="limparFiltros()">Limpar</button>
+        }
+      </div>
+    </form>
+
+    <section class="resultados">
+      @if (carregando()) {
+        <app-carregando mensagem="Buscando veículos..." />
+      } @else if (veiculos().length === 0) {
+        <app-estado-vazio titulo="Nenhum veículo encontrado" mensagem="Tente ampliar a faixa de preço ou buscar por outra marca.">
+          @if (quantidadeFiltros > 0) {
+            <button mat-stroked-button (click)="limparFiltros()">Limpar filtros</button>
+          }
+        </app-estado-vazio>
+      } @else {
+        <div class="grade-veiculos">
+          @for (veiculo of veiculos(); track veiculo.id) {
+            <app-veiculo-card [veiculo]="veiculo" />
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.barra {
+  gap: 8px;
+  background: var(--loja-escuro);
+  color: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+
+  a[mat-button],
+  button[mat-button] {
+    color: #e8ecf4;
+  }
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 16px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+
+  mat-icon {
+    color: var(--loja-destaque);
+  }
+
+  strong {
+    color: var(--loja-destaque);
+  }
+}
+
+.links .ativo {
+  background: rgb(255 255 255 / 12%);
+}
+
+.espaco {
+  flex: 1;
+}
+
+.progresso {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+}
+
+.menu-cabecalho {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 12px;
+  max-width: 260px;
+
+  span {
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.conteudo {
+  flex: 1;
+}
+
+.rodape {
+  margin-top: 48px;
+  padding: 20px 0;
+  background: var(--loja-escuro);
+  color: #b8c0d0;
+  font-size: 0.9rem;
+}
+
+.rodape-conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

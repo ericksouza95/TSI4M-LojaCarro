@@ -1,0 +1,83 @@
+<div class="container pagina">
+  <a [routerLink]="['/veiculos', id()]" class="voltar"><mat-icon>arrow_back</mat-icon> Voltar para o veículo</a>
+
+  @if (erroVeiculo()) {
+    <app-estado-vazio icone="event_busy" titulo="Não é possível agendar" [mensagem]="erroVeiculo()!">
+      <a mat-flat-button routerLink="/veiculos">Ver outros veículos</a>
+    </app-estado-vazio>
+  } @else if (!veiculo()) {
+    <app-carregando />
+  } @else {
+    @let v = veiculo()!;
+    <div class="cabecalho-pagina">
+      <div>
+        <h1>Agendar test drive</h1>
+        <p>Escolha o dia e um horário livre. O test drive dura 30 minutos.</p>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="painel veiculo">
+        @if (v.fotoUrl) {
+          <img [src]="v.fotoUrl" [alt]="'Foto do ' + v.marca + ' ' + v.modelo" />
+        }
+        <span class="marca">{{ v.marca }}</span>
+        <h2>{{ v.modelo }}</h2>
+        <span>{{ v.anoFabricacao }}/{{ v.anoModelo }} · {{ v.preco | currency }}</span>
+      </aside>
+
+      <section class="painel agenda">
+        <mat-form-field class="campo-data">
+          <mat-label>Data do test drive</mat-label>
+          <!-- O campo é só leitura: a data é escolhida pelo calendário, evitando formatos inválidos -->
+          <input matInput readonly [matDatepicker]="calendario" [min]="hoje" [matDatepickerFilter]="diasPermitidos"
+                 [ngModel]="data()" (ngModelChange)="escolherData($event)" (click)="calendario.open()" />
+          <mat-datepicker-toggle matIconSuffix [for]="calendario" />
+          <mat-datepicker #calendario />
+          <mat-hint>Segunda a sábado. Domingo a loja está fechada.</mat-hint>
+        </mat-form-field>
+
+        <h3>Horários em {{ data() | date: "EEEE, dd 'de' MMMM" }}</h3>
+
+        @if (carregandoHorarios()) {
+          <app-carregando mensagem="Consultando horários..." />
+        } @else if (horarios().length === 0) {
+          <app-estado-vazio icone="event_busy" titulo="A loja não abre neste dia" mensagem="Escolha outra data no calendário." />
+        } @else {
+          @if (!algumLivre()) {
+            <p class="aviso">Todos os horários deste dia já estão ocupados ou passaram. Escolha outra data.</p>
+          }
+          <div class="grade-horarios" role="listbox" aria-label="Horários disponíveis">
+            @for (horario of horarios(); track horario.inicio) {
+              <button type="button" role="option" class="horario"
+                      [class.escolhido]="horario.inicio === horarioEscolhido()"
+                      [disabled]="!horario.disponivel"
+                      [attr.aria-selected]="horario.inicio === horarioEscolhido()"
+                      (click)="escolherHorario(horario)">
+                {{ horario.inicio }}
+              </button>
+            }
+          </div>
+          <div class="legenda">
+            <span><i class="livre"></i> Livre</span>
+            <span><i class="ocupado"></i> Ocupado</span>
+            <span><i class="selecionado"></i> Selecionado</span>
+          </div>
+        }
+
+        <div class="confirmacao">
+          @if (horarioEscolhido(); as horario) {
+            <p><mat-icon>event_available</mat-icon> {{ data() | date: 'dd/MM/yyyy' }}, das {{ horario }} às {{ fimEscolhido() }}</p>
+          }
+          <button mat-flat-button class="botao-destaque" [disabled]="!horarioEscolhido() || enviando()" (click)="confirmar()">
+            @if (enviando()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              Confirmar agendamento
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</div>

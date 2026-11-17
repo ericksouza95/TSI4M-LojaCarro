@@ -1,0 +1,54 @@
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.filtros {
+  position: sticky;
+  top: 84px;
+
+  h2 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+  }
+}
+
+.rotulo-grupo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.acoes-filtro {
+  display: flex;
+  gap: 8px;
+}
+
+.resultados .grade-veiculos {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+@media (max-width: 799px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros {
+    position: static;
+    display: none;
+
+    &.aberto {
+      display: block;
+    }
+  }
+}

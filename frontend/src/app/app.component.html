@@ -1,0 +1,68 @@
+<header class="topo">
+  <mat-toolbar class="barra">
+    <a routerLink="/" class="marca" aria-label="Página inicial">
+      <mat-icon>directions_car</mat-icon>
+      <span>Loja<strong>Carro</strong></span>
+    </a>
+
+    <nav class="links so-desktop" aria-label="Navegação principal">
+      <a mat-button routerLink="/veiculos" routerLinkActive="ativo">Veículos</a>
+      @if (auth.isCliente()) {
+        <a mat-button routerLink="/meus-agendamentos" routerLinkActive="ativo">Meus test drives</a>
+      }
+      @if (auth.isAdmin()) {
+        <a mat-button routerLink="/admin" routerLinkActive="ativo">Painel</a>
+        <a mat-button routerLink="/admin/veiculos" routerLinkActive="ativo">Gerenciar veículos</a>
+        <a mat-button routerLink="/admin/agendamentos" routerLinkActive="ativo">Agendamentos</a>
+      }
+    </nav>
+
+    <span class="espaco"></span>
+
+    @if (auth.usuario(); as usuario) {
+      <button mat-button [matMenuTriggerFor]="menuUsuario" class="botao-usuario">
+        <mat-icon>account_circle</mat-icon>
+        <span class="so-desktop">{{ primeiroNome(usuario.nome) }}</span>
+        <mat-icon class="so-desktop">expand_more</mat-icon>
+      </button>
+      <mat-menu #menuUsuario="matMenu" xPosition="before">
+        <div class="menu-cabecalho">
+          <strong>{{ usuario.nome }}</strong>
+          <span>{{ usuario.email }}</span>
+        </div>
+        <mat-divider />
+        <a mat-menu-item routerLink="/veiculos"><mat-icon>search</mat-icon>Veículos</a>
+        @if (auth.isCliente()) {
+          <a mat-menu-item routerLink="/meus-agendamentos"><mat-icon>event</mat-icon>Meus test drives</a>
+        }
+        @if (auth.isAdmin()) {
+          <a mat-menu-item routerLink="/admin"><mat-icon>dashboard</mat-icon>Painel</a>
+          <a mat-menu-item routerLink="/admin/veiculos"><mat-icon>directions_car</mat-icon>Gerenciar veículos</a>
+          <a mat-menu-item routerLink="/admin/agendamentos"><mat-icon>event_note</mat-icon>Agendamentos</a>
+          <a mat-menu-item routerLink="/admin/clientes"><mat-icon>group</mat-icon>Clientes</a>
+          <a mat-menu-item routerLink="/admin/logs"><mat-icon>history</mat-icon>Logs</a>
+        }
+        <mat-divider />
+        <button mat-menu-item (click)="auth.logout()"><mat-icon>logout</mat-icon>Sair</button>
+      </mat-menu>
+    } @else {
+      <a mat-button routerLink="/veiculos" class="so-mobile">Veículos</a>
+      <a mat-button routerLink="/login">Entrar</a>
+      <a mat-flat-button routerLink="/cadastro" class="so-desktop">Criar conta</a>
+    }
+  </mat-toolbar>
+  @if (carregamento.ativo()) {
+    <mat-progress-bar mode="indeterminate" class="progresso" />
+  }
+</header>
+
+<main class="conteudo">
+  <router-outlet />
+</main>
+
+<footer class="rodape">
+  <div class="container rodape-conteudo">
+    <span><mat-icon>directions_car</mat-icon> LojaCarro &copy; {{ ano }}</span>
+    <span>Seminovos revisados com test drive agendado online</span>
+  </div>
+</footer>

@@ -1,0 +1,37 @@
+// Estilos comuns das telas administrativas
+.filtros-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  margin-bottom: 20px;
+  padding-bottom: 0;
+
+  mat-form-field {
+    flex: 1 1 220px;
+  }
+}
+
+.botoes-filtro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.celula-acoes {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.contato {
+  display: flex;
+  flex-direction: column;
+
+  small {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+small {
+  color: var(--mat-sys-on-surface-variant);
+}

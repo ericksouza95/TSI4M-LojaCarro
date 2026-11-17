@@ -1,0 +1,66 @@
+<div class="container pagina">
+  <a routerLink="/veiculos" class="voltar"><mat-icon>arrow_back</mat-icon> Voltar para os veículos</a>
+
+  @if (carregando()) {
+    <app-carregando mensagem="Carregando veículo..." />
+  } @else if (erro()) {
+    <app-estado-vazio icone="car_crash" titulo="Veículo não encontrado" [mensagem]="erro()!">
+      <a mat-flat-button routerLink="/veiculos">Ver outros veículos</a>
+    </app-estado-vazio>
+  } @else if (veiculo(); as v) {
+    <div class="detalhe">
+      <div class="foto">
+        @if (v.fotoUrl) {
+          <img [src]="v.fotoUrl" [alt]="'Foto do ' + v.marca + ' ' + v.modelo" />
+        } @else {
+          <mat-icon>directions_car</mat-icon>
+        }
+      </div>
+
+      <aside class="painel resumo">
+        <span class="marca">{{ v.marca }}</span>
+        <h1>{{ v.modelo }}</h1>
+        <span class="ano">{{ v.anoFabricacao }}/{{ v.anoModelo }} · {{ v.quilometragem | number }} km</span>
+        @if (v.situacao !== 'DISPONIVEL') {
+          <app-status-chip [valor]="v.situacao" tipo="situacao" />
+        }
+        <strong class="preco">{{ v.preco | currency }}</strong>
+
+        @if (v.situacao === 'DISPONIVEL') {
+          @if (auth.isAdmin()) {
+            <a mat-flat-button [routerLink]="['/admin/veiculos', v.id, 'editar']"><mat-icon>edit</mat-icon> Editar veículo</a>
+          } @else if (auth.logado()) {
+            <a mat-flat-button class="botao-destaque" [routerLink]="['/veiculos', v.id, 'agendar']">
+              <mat-icon>event_available</mat-icon> Agendar test drive
+            </a>
+          } @else {
+            <a mat-flat-button class="botao-destaque" routerLink="/login" [queryParams]="{ redirect: '/veiculos/' + v.id + '/agendar' }">
+              <mat-icon>event_available</mat-icon> Entre para agendar um test drive
+            </a>
+          }
+          <p class="dica"><mat-icon>schedule</mat-icon> Test drive de 30 minutos, de segunda a sábado.</p>
+        } @else {
+          <p class="dica">Este veículo não está disponível para test drive.</p>
+        }
+      </aside>
+
+      <section class="painel caracteristicas">
+        <h2>Características</h2>
+        <dl>
+          <div><dt>Marca</dt><dd>{{ v.marca }}</dd></div>
+          <div><dt>Modelo</dt><dd>{{ v.modelo }}</dd></div>
+          <div><dt>Ano de fabricação</dt><dd>{{ v.anoFabricacao }}</dd></div>
+          <div><dt>Ano do modelo</dt><dd>{{ v.anoModelo }}</dd></div>
+          <div><dt>Quilometragem</dt><dd>{{ v.quilometragem | number }} km</dd></div>
+          <div><dt>Cor</dt><dd>{{ v.cor }}</dd></div>
+          <div><dt>Combustível</dt><dd>{{ v.combustivel | rotulo: 'combustivel' }}</dd></div>
+          <div><dt>Transmissão</dt><dd>{{ v.transmissao | rotulo: 'transmissao' }}</dd></div>
+        </dl>
+        @if (v.descricao) {
+          <h2>Descrição</h2>
+          <p class="descricao">{{ v.descricao }}</p>
+        }
+      </section>
+    </div>
+  }
+</div>

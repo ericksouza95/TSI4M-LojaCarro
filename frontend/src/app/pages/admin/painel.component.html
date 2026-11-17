@@ -1,0 +1,52 @@
+<div class="container pagina">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Painel administrativo</h1>
+      <p>Olá, {{ auth.usuario()?.nome }}. Aqui está o resumo da loja.</p>
+    </div>
+    <a mat-flat-button routerLink="/admin/veiculos/novo"><mat-icon>add</mat-icon> Cadastrar veículo</a>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando mensagem="Carregando indicadores..." />
+  } @else {
+    <div class="indicadores">
+      @for (item of indicadores(); track item.rotulo) {
+        <a class="painel indicador" [routerLink]="item.link">
+          <mat-icon>{{ item.icone }}</mat-icon>
+          <strong>{{ item.valor }}</strong>
+          <span>{{ item.rotulo }}</span>
+        </a>
+      }
+    </div>
+
+    <div class="colunas">
+      <section class="painel">
+        <div class="titulo-secao">
+          <h2>Próximos test drives</h2>
+          <a mat-button routerLink="/admin/agendamentos">Ver todos</a>
+        </div>
+        @if (proximos().length === 0) {
+          <app-estado-vazio icone="event_available" titulo="Nenhum test drive agendado" />
+        } @else {
+          <ul class="proximos">
+            @for (a of proximos(); track a.id) {
+              <li>
+                <span class="quando">{{ paraData(a.data) | date: 'dd/MM' }} · {{ a.horarioInicio }}</span>
+                <span class="quem"><strong>{{ a.clienteNome }}</strong> — {{ a.veiculo }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="painel atalhos">
+        <h2>Atalhos</h2>
+        <a mat-stroked-button routerLink="/admin/veiculos"><mat-icon>directions_car</mat-icon> Gerenciar veículos</a>
+        <a mat-stroked-button routerLink="/admin/agendamentos"><mat-icon>event_note</mat-icon> Gerenciar agendamentos</a>
+        <a mat-stroked-button routerLink="/admin/clientes"><mat-icon>group</mat-icon> Clientes</a>
+        <a mat-stroked-button routerLink="/admin/logs"><mat-icon>history</mat-icon> Logs de auditoria</a>
+      </section>
+    </div>
+  }
+</div>
